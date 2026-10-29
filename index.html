@@ -1,0 +1,334 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Kit multimedia</title>
+  <style>
+    :root { --bg:#f6f7f9; --card:#fff; --fg:#1a1c20; --mut:#6b7280; --bd:#e2e5ea; --ac:#4f46e5; --acfg:#fff; --ok:#0a7d52; --warn:#b45309; --bad:#dc2626; }
+    @media (prefers-color-scheme: dark) {
+      :root { --bg:#14161a; --card:#1e2126; --fg:#e8eaee; --mut:#9aa1ad; --bd:#2d3239; --ac:#818cf8; --acfg:#101114; --ok:#34d399; --warn:#fbbf24; --bad:#f87171; }
+    }
+    * { box-sizing: border-box; }
+    [hidden] { display:none !important; }
+    body { margin:0; background:var(--bg); color:var(--fg); font:14px/1.45 system-ui, sans-serif; }
+    header { display:flex; align-items:center; flex-wrap:wrap; gap:10px 18px; padding:12px 20px; border-bottom:1px solid var(--bd); background:var(--card); }
+    h1 { font-size:17px; margin:0; }
+    .tabs { display:flex; gap:6px; flex-wrap:wrap; }
+    .tab { padding:7px 14px; border-radius:999px; }
+    .tab.on { background:var(--ac); color:var(--acfg); border-color:var(--ac); font-weight:600; }
+    #status { color:var(--mut); margin-left:auto; }
+    main { display:grid; grid-template-columns:310px 1fr; gap:20px; padding:20px; align-items:start; }
+    main.single { display:block; max-width:900px; margin:0 auto; }
+    @media (max-width: 800px) { main { grid-template-columns:1fr; } }
+    aside, .panel { background:var(--card); border:1px solid var(--bd); border-radius:10px; padding:16px; }
+    aside { position:sticky; top:16px; }
+    aside h2, .panel h2 { font-size:12px; text-transform:uppercase; letter-spacing:.06em; color:var(--mut); margin:18px 0 8px; }
+    aside h2:first-child, .panel h2:first-child { margin-top:0; }
+    label { display:block; margin:8px 0 3px; font-size:13px; }
+    .row { display:flex; gap:8px; }
+    .row > * { flex:1; min-width:0; }
+    input[type=number], select { width:100%; padding:7px 8px; border:1px solid var(--bd); border-radius:6px; background:var(--bg); color:var(--fg); font:inherit; }
+    textarea { width:100%; padding:8px; border:1px solid var(--bd); border-radius:6px; background:var(--bg); color:var(--fg); font:13px/1.4 ui-monospace, Consolas, monospace; resize:vertical; }
+    input[type=range] { width:100%; }
+    input[type=color] { width:100%; height:32px; padding:2px; border:1px solid var(--bd); border-radius:6px; background:var(--bg); }
+    .hint { color:var(--mut); font-size:12px; margin-top:4px; }
+    button { font:inherit; padding:8px 12px; border-radius:7px; border:1px solid var(--bd); background:var(--card); color:var(--fg); cursor:pointer; }
+    button:hover:not(:disabled) { border-color:var(--ac); }
+    button.primary { background:var(--ac); color:var(--acfg); border-color:var(--ac); font-weight:600; }
+    button:disabled { opacity:.5; cursor:default; }
+    aside button { width:100%; margin-top:8px; }
+    .drop { border:2px dashed var(--bd); border-radius:10px; padding:22px; text-align:center; color:var(--mut); margin-bottom:14px; }
+    .drop.over { border-color:var(--ac); color:var(--fg); }
+    .drop .btns { display:flex; gap:8px; justify-content:center; margin-top:10px; flex-wrap:wrap; }
+    .toolbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:12px; }
+    .toolbar .sp { flex:1; }
+    #summary { color:var(--ok); font-size:13px; margin-bottom:10px; min-height:18px; }
+    #grid { display:grid; grid-template-columns:repeat(auto-fill, minmax(180px, 1fr)); gap:12px; }
+    .card { position:relative; background:var(--card); border:2px solid var(--bd); border-radius:10px; overflow:hidden; }
+    .card.sel { border-color:var(--ac); }
+    .card img { display:block; width:100%; height:130px; object-fit:contain; background:repeating-conic-gradient(#8881 0% 25%, transparent 0% 50%) 50% / 16px 16px; cursor:pointer; }
+    .card .meta { padding:8px 10px; font-size:12px; }
+    .card .name { font-weight:600; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+    .card .info { color:var(--mut); }
+    .card .res { color:var(--ok); }
+    .card .res.warn { color:var(--warn); }
+    .card input[type=checkbox] { position:absolute; top:8px; left:8px; width:18px; height:18px; }
+    .card .x { position:absolute; top:6px; right:6px; width:24px; height:24px; padding:0; line-height:1; border-radius:50%; }
+    .empty { color:var(--mut); text-align:center; padding:30px 0; grid-column:1 / -1; }
+    .cmpbtn { width:100%; margin-top:6px; padding:5px 8px; font-size:12px; }
+
+    /* Audio y vídeo */
+    .avrow { display:grid; grid-template-columns:24px 260px 1fr 28px; gap:12px; align-items:start; background:var(--card); border:2px solid var(--bd); border-radius:10px; padding:10px; margin-bottom:10px; }
+    @media (max-width: 1100px) { .avrow { grid-template-columns:24px 1fr 28px; } .avrow .prev { grid-column:2 / 4; } .avrow .body { grid-column:2 / 4; } }
+    .avrow.sel { border-color:var(--ac); }
+    .avrow video { width:100%; display:block; border-radius:6px; background:#000; max-height:180px; }
+    .avrow audio { width:100%; display:block; }
+    .avrow .name { font-weight:600; word-break:break-all; }
+    .avrow .info { color:var(--mut); font-size:12px; }
+    .avrow .st { font-size:13px; color:var(--ok); margin-top:4px; min-height:18px; }
+    .avrow .st.err { color:var(--bad); }
+    .avrow .x { width:26px; height:26px; padding:0; border-radius:50%; line-height:1; }
+    .avres { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-top:8px; padding-top:8px; border-top:1px solid var(--bd); font-size:12px; }
+    .avres .t { flex:1; min-width:140px; }
+    .avres .t b { display:block; word-break:break-all; }
+    .avres .t span { color:var(--mut); }
+    .avres img { max-height:90px; max-width:170px; border-radius:6px; background:repeating-conic-gradient(#8881 0% 25%, transparent 0% 50%) 50% / 16px 16px; }
+    .avres video { max-width:240px; max-height:140px; border-radius:6px; background:#000; }
+    .avres audio { width:240px; }
+    .avres button { padding:5px 10px; font-size:12px; }
+
+    /* Desde enlaces */
+    .log div { padding:3px 0; font-size:13px; word-break:break-all; }
+    .log .ok { color:var(--ok); }
+    .log .bad { color:var(--bad); }
+    .log .wait { color:var(--mut); }
+    .urlbar { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin:10px 0; }
+    .urlbar select { width:auto; min-width:260px; }
+    .urlbar .sp { flex:1; }
+
+    /* Visor antes / después (imágenes) */
+    #cmp { position:fixed; inset:0; z-index:50; background:rgba(8,9,11,.95); color:#fff; display:flex; flex-direction:column; }
+    .cbar { display:flex; justify-content:space-between; align-items:center; gap:12px; padding:10px 16px; flex-wrap:wrap; }
+    .ctitle b { display:block; font-size:15px; }
+    .ctitle span { font-size:12px; color:#c3c8d2; }
+    .ctools { display:flex; gap:8px; }
+    .ctools button { background:#23262c; color:#fff; border-color:#3a3f48; }
+    .ctools button:hover:not(:disabled) { border-color:#818cf8; }
+    #cBody { flex:1; min-height:0; display:flex; gap:10px; padding:0 12px 12px; }
+    .view { flex:1; min-width:0; overflow:auto; display:flex; }
+    .stage { position:relative; margin:auto; flex:none; overflow:hidden; user-select:none; }
+    .stage img { position:absolute; inset:0; width:100%; height:100%; display:block; pointer-events:none; }
+    .stage.checker { background:repeating-conic-gradient(#8884 0% 25%, #0000 0% 50%) 50% / 16px 16px; }
+    .chip { position:absolute; top:8px; padding:3px 8px; border-radius:5px; background:rgba(0,0,0,.68); font-size:12px; pointer-events:none; }
+    .line { position:absolute; top:0; bottom:0; width:2px; background:#fff; box-shadow:0 0 0 1px rgba(0,0,0,.4); transform:translateX(-1px); pointer-events:none; }
+    .line::after { content:"↔"; position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:30px; height:30px; border-radius:50%; background:#fff; color:#111; display:flex; align-items:center; justify-content:center; font-size:15px; box-shadow:0 1px 6px rgba(0,0,0,.5); }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Kit multimedia</h1>
+    <nav class="tabs">
+      <button class="tab on" type="button" data-tab="img">Imágenes</button>
+      <button class="tab" type="button" data-tab="av">Audio y vídeo</button>
+      <button class="tab" type="button" data-tab="url">Desde enlaces</button>
+    </nav>
+    <div id="status">Añade archivos para empezar.</div>
+  </header>
+
+  <!-- ===================== IMÁGENES ===================== -->
+  <main id="tab-img">
+    <aside>
+      <h2>Medidas de salida</h2>
+      <div class="row">
+        <div><label for="w">Ancho (px)</label><input id="w" type="number" min="1" placeholder="1200"></div>
+        <div><label for="h">Alto (px)</label><input id="h" type="number" min="1" placeholder="800"></div>
+      </div>
+      <div class="hint">Pon ancho y alto para que todas queden exactamente iguales.</div>
+      <button id="same" type="button">Usar medidas de la primera seleccionada</button>
+
+      <label for="fit">Si la proporción no coincide</label>
+      <select id="fit">
+        <option value="cover">Recortar para llenar (cover)</option>
+        <option value="contain">Encajar con bandas de color (contain)</option>
+        <option value="stretch">Estirar (deforma)</option>
+      </select>
+      <div class="row">
+        <div><label for="bg">Color de relleno</label><input id="bg" type="color" value="#ffffff"></div>
+        <div><label for="transp">&nbsp;</label><label style="margin:6px 0"><input id="transp" type="checkbox"> Transparente</label></div>
+      </div>
+      <div class="hint">«Transparente» solo vale para PNG y WebP.</div>
+
+      <h2>Calidad y peso</h2>
+      <label for="format">Formato</label>
+      <select id="format">
+        <option value="webp" selected>WebP (recomendado: menos peso, más calidad)</option>
+        <option value="jpeg">JPEG</option>
+        <option value="png">PNG (sin pérdida, pesa mucho en fotos)</option>
+      </select>
+      <label for="q">Calidad: <b id="qv">85</b>%</label>
+      <input id="q" type="range" min="10" max="100" value="85">
+      <label for="target">Peso objetivo por imagen (KB)</label>
+      <input id="target" type="number" min="5" value="250" placeholder="p. ej. 250">
+
+      <label for="sharp">Nitidez tras redimensionar: <b id="sv">30</b>%</label>
+      <input id="sharp" type="range" min="0" max="100" value="30">
+      <div class="hint">Recupera definición al reducir o ampliar. No inventa detalle: una foto muy pequeña ampliada seguirá viéndose algo blanda.</div>
+      <div class="hint" id="targetHint">Si lo rellenas, se ajusta la calidad de cada imagen para acercarse a ese peso (ignora el slider).</div>
+
+      <button id="go" class="primary" type="button">Procesar seleccionadas</button>
+      <button id="dl" type="button">Descargar (ZIP)</button>
+    </aside>
+
+    <section>
+      <div id="drop" class="drop panel">
+        Arrastra aquí imágenes, pega con Ctrl+V, o usa los botones.
+        <div class="btns">
+          <button id="filesBtn" type="button">Elegir archivos…</button>
+          <button id="pick" type="button">Cargar imágenes de la web de origen</button>
+        </div>
+        <div class="hint" id="srcinfo"></div>
+        <input id="files" type="file" accept="image/*" multiple hidden>
+      </div>
+
+      <div class="toolbar">
+        <button id="selAll" type="button">Seleccionar todas</button>
+        <button id="selNone" type="button">Ninguna</button>
+        <button id="delSel" type="button">Quitar seleccionadas</button>
+        <button id="clear" type="button">Vaciar</button>
+        <span class="sp"></span>
+        <span id="count"></span>
+      </div>
+      <div id="summary"></div>
+      <div id="grid"></div>
+    </section>
+  </main>
+
+  <!-- ===================== AUDIO Y VÍDEO ===================== -->
+  <main id="tab-av" hidden>
+    <aside>
+      <h2>Qué quieres hacer</h2>
+      <select id="avAction">
+        <option value="mp3">Extraer audio → MP3</option>
+        <option value="wav">Extraer audio → WAV (sin pérdida)</option>
+        <option value="gif">Vídeo → GIF animado</option>
+        <option value="frames">Vídeo → fotogramas (imágenes)</option>
+        <option value="recode">Vídeo → comprimir / recortar / cambiar formato</option>
+      </select>
+      <div class="hint" data-for="mp3 wav">Vale para vídeos y audios que Chrome pueda reproducir (mp4, webm, mov, mp3, m4a, wav, ogg…).</div>
+
+      <div data-for="mp3 wav">
+        <label for="avRate">Frecuencia de muestreo</label>
+        <select id="avRate">
+          <option value="44100">44,1 kHz (estándar)</option>
+          <option value="48000">48 kHz (vídeo)</option>
+        </select>
+        <label><input id="avMono" type="checkbox"> Mono (pesa la mitad)</label>
+      </div>
+      <div data-for="mp3">
+        <label for="avKbps">Calidad del MP3</label>
+        <select id="avKbps">
+          <option value="128">128 kbps (voz, ligero)</option>
+          <option value="192" selected>192 kbps (buena)</option>
+          <option value="256">256 kbps</option>
+          <option value="320">320 kbps (máxima)</option>
+        </select>
+      </div>
+
+      <div data-for="gif" hidden>
+        <div class="row">
+          <div><label for="gifStart">Inicio (s)</label><input id="gifStart" type="number" min="0" step="0.5" value="0"></div>
+          <div><label for="gifDur">Duración (s)</label><input id="gifDur" type="number" min="0.5" step="0.5" value="5"></div>
+        </div>
+        <div class="row">
+          <div><label for="gifWidth">Ancho (px)</label><input id="gifWidth" type="number" min="64" value="480"></div>
+          <div><label for="gifFps">Fotogramas/s</label><input id="gifFps" type="number" min="1" max="30" value="10"></div>
+        </div>
+        <div class="hint">Un GIF pesa mucho: cuanto más ancho, más largo y más fps, más MB. Para 5 s a 480 px y 10 fps suele salir entre 1 y 4 MB.</div>
+      </div>
+
+      <div data-for="frames" hidden>
+        <div class="row">
+          <div><label for="frTime">Instante (s)</label><input id="frTime" type="number" min="0" step="0.1" value="0"></div>
+          <div><label for="frEvery">Repetir cada (s)</label><input id="frEvery" type="number" min="0" step="0.5" value="0"></div>
+        </div>
+        <div class="hint">Con «Repetir cada» a 0 se saca un solo fotograma. Con 5, uno cada 5 segundos desde el instante indicado.</div>
+        <div class="row">
+          <div><label for="frFormat">Formato</label>
+            <select id="frFormat"><option value="jpeg">JPEG</option><option value="png">PNG</option><option value="webp">WebP</option></select></div>
+          <div><label for="frWidth">Ancho (px)</label><input id="frWidth" type="number" min="0" placeholder="original"></div>
+        </div>
+      </div>
+
+      <div data-for="recode" hidden>
+        <label for="rcFormat">Formato de salida</label>
+        <select id="rcFormat"><option value="mp4">MP4</option><option value="webm">WebM</option></select>
+        <div class="row">
+          <div><label for="rcWidth">Ancho (px)</label><input id="rcWidth" type="number" min="0" placeholder="original"></div>
+          <div><label for="rcKbps">Vídeo (kbps)</label><input id="rcKbps" type="number" min="100" step="100" value="2500"></div>
+        </div>
+        <div class="row">
+          <div><label for="rcStart">Inicio (s)</label><input id="rcStart" type="number" min="0" step="0.5" value="0"></div>
+          <div><label for="rcEnd">Fin (s)</label><input id="rcEnd" type="number" min="0" step="0.5" placeholder="hasta el final"></div>
+        </div>
+        <label><input id="rcMute" type="checkbox"> Quitar el sonido</label>
+        <div class="hint">Se procesa a velocidad real: un vídeo de 5 minutos tarda unos 5 minutos. Mantén esta pestaña visible mientras tanto. Referencia: 2500 kbps para 1080p con buena calidad, 1000 kbps para algo ligero.</div>
+      </div>
+
+      <button id="avGo" class="primary" type="button">Procesar seleccionados</button>
+      <button id="avDl" type="button">Descargar resultados (ZIP)</button>
+    </aside>
+
+    <section>
+      <div id="avDrop" class="drop panel">
+        Arrastra aquí vídeos o audios.
+        <div class="btns">
+          <button id="avFilesBtn" type="button">Elegir archivos…</button>
+        </div>
+        <div class="hint">También puedes traerlos desde enlaces en la pestaña «Desde enlaces».</div>
+        <input id="avFiles" type="file" accept="video/*,audio/*,.mkv,.m4a,.opus,.flac,.mov" multiple hidden>
+      </div>
+      <div class="toolbar">
+        <button id="avSelAll" type="button">Seleccionar todos</button>
+        <button id="avSelNone" type="button">Ninguno</button>
+        <button id="avDelSel" type="button">Quitar seleccionados</button>
+        <button id="avClear" type="button">Vaciar</button>
+        <span class="sp"></span>
+        <span id="avCount"></span>
+      </div>
+      <div id="avList"></div>
+    </section>
+  </main>
+
+  <!-- ===================== DESDE ENLACES ===================== -->
+  <main id="tab-url" class="single" hidden>
+    <div class="panel">
+      <h2>Descargar o convertir desde enlaces</h2>
+      <div class="hint" style="margin:0 0 8px">Pega enlaces <b>directos a archivos</b> (.mp4, .webm, .mp3, .m4a, .wav, .gif, .jpg…), uno por línea.</div>
+      <textarea id="urls" rows="7" placeholder="https://ejemplo.com/video.mp4&#10;https://ejemplo.com/audio.mp3"></textarea>
+      <div class="urlbar">
+        <select id="urlAction">
+          <option value="save">Descargar los archivos tal cual</option>
+          <option value="mp3">Descargar y extraer el audio en MP3</option>
+          <option value="load">Cargarlos en «Audio y vídeo» / «Imágenes» para procesarlos</option>
+        </select>
+        <button id="urlGo" class="primary" type="button">Ejecutar</button>
+        <span class="sp"></span>
+        <button id="urlScan" type="button">Buscar vídeos y audios en la web de origen</button>
+        <button id="urlClear" type="button">Vaciar</button>
+      </div>
+      <div class="hint" id="urlSrc"></div>
+      <div class="log" id="urlLog"></div>
+      <div class="hint" style="margin-top:12px">
+        Los enlaces de páginas como YouTube, TikTok o Vimeo no son archivos de vídeo, sino páginas web, y no se pueden descargar con esta herramienta.
+        Tampoco funcionan los vídeos que la web carga por streaming (HLS/DASH o <code>blob:</code>).
+        Si el vídeo ya lo tienes en tu ordenador, ve directamente a «Audio y vídeo».
+        Para pasar de WebM a MP4, o comprimir, usa «Audio y vídeo → comprimir / cambiar formato».
+      </div>
+    </div>
+  </main>
+
+  <!-- Visor antes / después de imágenes -->
+  <div id="cmp" hidden>
+    <div class="cbar">
+      <div class="ctitle"><b id="cName"></b><span id="cStats"></span></div>
+      <div class="ctools">
+        <button id="cMode" type="button">Ver lado a lado</button>
+        <button id="cZoom" type="button">Zoom 1:1</button>
+        <button id="cPrev" type="button" title="Anterior (←)">←</button>
+        <button id="cNext" type="button" title="Siguiente (→)">→</button>
+        <button id="cClose" type="button" title="Cerrar (Esc)">✕</button>
+      </div>
+    </div>
+    <div id="cBody"></div>
+  </div>
+
+  <script src="zip.js"></script>
+  <script src="vendor/lame.min.js"></script>
+  <script src="codecs.js"></script>
+  <script src="app.js"></script>
+  <script src="media.js"></script>
+  <script src="url.js"></script>
+  <script type="module" src="vendor/gifenc-init.js"></script>
+</body>
+</html>

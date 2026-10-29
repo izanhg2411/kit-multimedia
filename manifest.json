@@ -1,0 +1,10 @@
+{
+  "manifest_version": 3,
+  "name": "Kit multimedia",
+  "version": "2.0.0",
+  "description": "Imágenes, audio y vídeo en un solo sitio: iguala imágenes, convierte vídeo a MP3 o GIF, saca fotogramas, comprime vídeo y descarga archivos por enlace.",
+  "permissions": ["activeTab", "scripting"],
+  "host_permissions": ["<all_urls>"],
+  "action": { "default_title": "Abrir el Kit multimedia" },
+  "background": { "service_worker": "background.js" }
+}
